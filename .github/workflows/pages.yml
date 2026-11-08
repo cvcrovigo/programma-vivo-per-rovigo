@@ -1,0 +1,35 @@
+name: Pubblica il sito
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - name: Estrai le pagine pubbliche
+        run: |
+          unzip -q programma-vivo-per-rovigo-pages.zip -d _site
+          test -s _site/programma-vivo-per-rovigo-pages/index.html
+          test "$(find _site/programma-vivo-per-rovigo-pages -maxdepth 1 -name "*.html" | wc -l)" -eq 45
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site/programma-vivo-per-rovigo-pages
+      - uses: actions/deploy-pages@v4
+        id: deployment
